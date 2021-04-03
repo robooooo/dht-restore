@@ -1,8 +1,0 @@
-{
-  "runtimeOptions": {
-    "additionalProbingPaths": [
-      "/home/april/.dotnet/store/|arch|/|tfm|",
-      "/home/april/.nuget/packages"
-    ]
-  }
-}
