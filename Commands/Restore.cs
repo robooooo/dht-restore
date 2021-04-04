@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Net;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -42,7 +41,7 @@ namespace History
                 var Hook = await Channel.CreateWebhookAsync("Histo-hook");
 
                 // Ruffle through them
-                foreach (var message in pair.Value)
+                foreach (var message in pair.Value.OrderBy(m => m.Value.Timestamp))
                 {
                     await SendAs(Hook, History.Meta, message.Value);
                 }
@@ -51,7 +50,7 @@ namespace History
             }
         }
 
-        public async Task SendAs(DiscordWebhook hook, Metadata meta, Message message)
+        private async Task SendAs(DiscordWebhook hook, Metadata meta, Message message)
         {
             var UserId = meta.UserIndex[message.UserIndex];
             var User = meta.Users[UserId];
@@ -60,7 +59,7 @@ namespace History
             {
                 AvatarUrl = User.Avatar ?? Optional.FromNoValue<string>(),
                 // Avoid empty messages with this message that looks empty, but isn't
-                Content = String.IsNullOrWhiteSpace(message.Content) ? "** **" : message.Content,
+                Content = String.IsNullOrWhiteSpace(message.Content) ? Timestamp(message.Timestamp) : message.Content,
                 Username = User.Name ?? "Unknown User",
             };
 
@@ -80,6 +79,13 @@ namespace History
             }
 
             await hook.ExecuteAsync(Builder);
+        }
+
+        private string Timestamp(ulong sinceEpoch)
+        {   
+            var Epoch = new DateTime(1970,1,1,0,0,0,0,System.DateTimeKind.Utc);
+            Epoch.AddSeconds(sinceEpoch);
+            return $"{Epoch.ToString("dd MMM yyyy")}";
         }
     }
 }
